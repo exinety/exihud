@@ -1,0 +1,11 @@
+{
+	"title"		:	"Exihud",
+	"type"		:	"ServerContent",
+	"tags"		:	[ "roleplay" ],
+	"ignore"	:
+	[
+		"*.psd",
+		"*.vcproj",
+		"*.svn*"
+	]
+}
