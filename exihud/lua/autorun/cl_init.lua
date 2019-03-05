@@ -8,7 +8,7 @@ Second of all, just write me, I can really need help :)
 
 If you have any suggestions, feel free to ask me. I will see what I can do.
 
-If you have no idea, waht to change in this code: DON'T change it!
+If you have no idea, what to change in this code: DON'T change it!
 
 Go to the language and translate it there.
 ---------------------------------------------------------------------------
@@ -20,7 +20,7 @@ local current_gamemode = engine.ActiveGamemode()
 
 if current_gamemode != "darkrp" then return false end
 
-	AddCSLuaFile("lua/language/lang.lua")
+	AddCSLuaFile("language/lang.lua")
 	include("language/lang.lua")
 
 	local wanted_icon = Material("materials/wanted.png")
@@ -67,8 +67,8 @@ if current_gamemode != "darkrp" then return false end
 
 		if is_wanted then -- Shows triangle if wanted
 			surface.SetMaterial( wanted_icon )
-	    	surface.SetDrawColor( 35, 35, 35, 220 )
-	    	surface.DrawTexturedRect( 200, ScrH()-90, 45, 40 )
+	    		surface.SetDrawColor( 35, 35, 35, 220 )
+	    		surface.DrawTexturedRect( 200, ScrH()-90, 45, 40 )
 		end
 
 	   	if has_license then -- shows gun if gun license
