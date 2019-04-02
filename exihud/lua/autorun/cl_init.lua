@@ -6,83 +6,164 @@ language.lua and config.lua
 If you know how to code in (g)lua, please help me optimize my code, as I am
 new to this. Any help is appreciated and wanted. If you like my Hud, please
 like it in the workshop to help others find it!
-
-If you have any suggestions, feel free to ask, and I will try to implement it.
-
-Thanks for reading and have fun :)
 ---------------------------------------------------------------------------*/
-if (engine.ActiveGamemode()) != "darkrp" then return false end
-
-local wanted_icon = Material("materials/wanted.png") //cache image
-local license_icon = Material("materials/has_license.png") //cache image
 
 if CLIENT then
+
+	----------------------------------------------------------------------------------------
+	surface.CreateFont( "Font", {
+	font = "Marlett",
+	extended = false,
+	size = 25,
+	weight = 10,
+	blursize = 0,
+	scanlines = 0,
+	antialias = true,
+	underline = false,
+	italic = false,
+	strikeout = false,
+	symbol = false,
+	rotary = false,
+	shadow = false,
+	additive = false,
+	outline = false,
+	} )
+	----------------------------------------------------------------------------------------
+	include("config.lua")
+	include("lang.lua")
+
+	local current_gamemode = engine.ActiveGamemode()
+	local gun_icon = Material("materials/gunlicense.png")
+	local wanted_icon = Material("materials/wanted.png")
+	/*---------------------------------------------------------------------------------------
+	Everything above this line is cached and only refreshes if the script is reloaded
+	---------------------------------------------------------------------------------------*/
+
+	if current_gamemode != "darkrp" then return false end
+
+		local function draw_exihud()
+			
+			local health = LocalPlayer():Health()
+			local health_text = LocalPlayer():Health()
+			local armor = LocalPlayer():Armor()
+
+			if health > 100 then health = 100 end
+			if health < 0 then health = 0 end
 	
-	//stuff outside the function is cached and won't change until you reload the script (hopefully)
+			draw.RoundedBox(5, 5, ScrH()-155, 300, 150,Color(255,255,255))
+			draw.RoundedBox(5, 10, ScrH()-150, health * 2.9, 50, Color(255, 100, 100))
+			draw.RoundedBox(5, 10, ScrH()-110, armor * 2.9, 10, Color(100, 100, 255))
+			draw.SimpleText(health_text, "Font", 150, ScrH()-130,Color(35,35,35),1 ,1)
 	
-	local function draw_exihud()
+			if current_gamemode == "darkrp" then
+				
+				local job = LocalPlayer():getDarkRPVar("job")
+				local money = LocalPlayer():getDarkRPVar("money")
+				local salary = LocalPlayer():getDarkRPVar("salary")
+				local is_wanted = LocalPlayer():getDarkRPVar("wanted")
+				local has_license = LocalPlayer():getDarkRPVar("HasGunlicense")
 	
-		//store variables for later use
-		local health_text = LocalPlayer():Health() //for displaying health as numbers
-		local health = LocalPlayer():Health() //for healthbar calculations
-		local armor = LocalPlayer():Armor() //for armorbar calculations
-		local job = LocalPlayer():getDarkRPVar("job")
-		local money = LocalPlayer():getDarkRPVar("money")
-		local salary = LocalPlayer():getDarkRPVar("salary")
-		local is_wanted = LocalPlayer():getDarkRPVar("wanted")
-		local has_license = LocalPlayer():getDarkRPVar("HasGunlicense")
-	
-		include("language/lang.lua") //allow translation without editing this file
-		include("config.lua") //allows me to easily edit stuff (and maybe you)
-	
-		if health_text <= 0 then health_text = "" end //display nothing if dead
-	
-		if health > 100 then health = 100 end
-		if health < 0 then health = 0 end //these checks prevent the health/armor bar from going out of the hud
-		if armor > 100 then armor = 100 end
-	
-		draw.RoundedBox(5, 5, ScrH()-155, 250, 150, Color(255, 255, 255)) //create white rectangle (background)
-		draw.RoundedBox(5, 10, ScrH()-150, health * 2.4, 50, Color(255, 100, 100)) //create healthbar
-		draw.RoundedBox(5, 10, ScrH()-110, armor * 2.4, 10, Color(100, 100, 255)) //create armorbar
-	
-		draw.SimpleText(health_text, "Impact", 130, ScrH()-140, Color(35, 35, 35), TEXT_ALIGN_CENTER) //display health as number
-		draw.SimpleText(exihud.lang.job .. job, "Impact", 10, ScrH()-95, Color(35, 35, 35)) //display player job
-		draw.SimpleText(exihud.lang.money .. money .. exihud.lang.currencysymbol, "Impact", 10, ScrH()-65, Color(35, 35, 35))
-		draw.SimpleText(exihud.lang.salary .. salary .. exihud.lang.currencysymbol, "Impact", 10, ScrH()-35, Color(35, 35, 35))
-	
-		if is_wanted then //shows triangle with exclamation mark if player is wanted
-			surface.SetMaterial( wanted_icon )
-	    	surface.SetDrawColor( 35, 35, 35, 220 )
-	    	surface.DrawTexturedRect( 200, ScrH()-90, 45, 40 )
+				draw.SimpleText(exihud.lang.job..job, "Font", 10, ScrH()-95, Color(35,35,35))
+				draw.SimpleText(exihud.lang.money..money, "Font", 10, ScrH()-65, Color(35,35,35))
+				draw.SimpleText(exihud.lang.salary..salary, "Font", 10, ScrH()-35, Color(35,35,35))
+
+				if is_wanted then
+
+					surface.SetDrawColor( 255, 35, 35, 175 )
+					surface.SetMaterial( wanted_icon )
+					surface.DrawTexturedRect( 260, ScrH()-95, 40, 40)
+
+				end
+
+				if has_license then
+
+					surface.SetDrawColor( 35, 35, 35, 175 )
+					surface.SetMaterial( gun_icon )
+					surface.DrawTexturedRect( 260, ScrH()-50, 40, 40)	
+
+				end
+				
+			/*
+			if current_gamemode is "******" then
+				(maybe coming in a future version ;)
+			end
+			*/
+			
+			end
 		end
+		------------------------------------------------------------------------------
+		local function draw_playerui( ply )
+
+			if ( !IsValid( ply ) ) then return end
+			if ( ply == LocalPlayer() ) then return end -- Don't draw a name when the player is you
+			if ( !ply:Alive() ) then return end -- Check if the player is alive
+			if !exihud.config.playerui_enabled then return end
+		
+			local Distance = LocalPlayer():GetPos():Distance( ply:GetPos() ) --Get the distance between you and the player
+		
+			if ( Distance < 1000 ) then --If the distance is less than 1000 units, it will draw the name
+		
+				local offset = Vector( 0, 0, 100 ) --Lifts the playerui, so it isn't in the body
+				local ang = LocalPlayer():EyeAngles()
+				local pos = ply:GetPos() + offset + ang:Up()
+				local health = ply:Health()
+				local armor = ply:Armor()
+				local job = ply:getDarkRPVar("job")
+				local is_wanted = ply:getDarkRPVar("wanted")
+				local has_license = ply:getDarkRPVar("HasGunlicense")
+
+				if health > 100 then health = 100 end --prevent the healthbar from going offscreen
+				if health < 0 then health = 0 end
+		
+				ang:RotateAroundAxis( ang:Forward(), 90 )
+				ang:RotateAroundAxis( ang:Right(), 90 )
+		
+		
+				cam.Start3D2D( pos, Angle( 0, ang.y, 90 ), 0.2 )
+
+					draw.RoundedBox(5, -150, 0, 300, 120, Color(255,255,255))
+					draw.RoundedBox(5, -145, 5, health * 2.9, 50,Color(255,100,100))
+					draw.RoundedBox(5, -145, 45, 100 * 2.9, 10,Color(100,100,255))
+
+					draw.SimpleText(exihud.lang.name .. ply:GetName(), "Font", -145, 60, Color(35,35,35))
+					draw.SimpleText(exihud.lang.job .. job, "Font", -145, 90,Color(35,35,35))
+					draw.SimpleText(health,"Font", 0, 25,Color(35,35,35), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+					if is_wanted then
 	
-	   	if has_license then //shows gun if player has gun license
-	   		surface.SetMaterial( license_icon )
-	   		surface.SetDrawColor( 35, 35, 35, 225 )
-	   		surface.DrawTexturedRect( 200, ScrH()-50, 45, 40 )
-	   	end
-	end
+						surface.SetDrawColor(255, 35, 35, 175)
+						surface.SetMaterial( wanted_icon )
+						surface.DrawTexturedRect(120, 60, 25, 25)
 	
-	hook.Add("HUDPaint","Draw_Exihud",draw_exihud) //draw the hud
+					end
 	
+					if has_license then
 	
-	//this bit of code just disables the default hud elements
+						surface.SetDrawColor(35, 35, 35, 175)
+						surface.SetMaterial( gun_icon )
+						surface.DrawTexturedRect(120, 90, 25, 25)	
 	
-	local hide = {
-		["DarkRP_HUD"] = true,
-		["DarkRP_LocalPlayerHUD"] = false,
-		["DarkRP_EntityDisplay"] = false,
-		["DarkRP_ZombieInfo"] = true,
-		["DarkRP_Hungermod"] = false,
-		["DarkRP_Agenda"] = false,
-		["CHudHealth"] = true,
-		["CHudBattery"] = true,
-		["CHudSuitPower"] = true,
-		["CHudAmmo"] = true,
-		["CHudSecondaryAmmo"] = true,
-	}
-	
-	hook.Add( "HUDShouldDraw", "Hide_default_HUD", function( name )
-		if ( hide[ name ] ) then return false end
-	end )
-end //end client
+					end
+
+				cam.End3D2D()
+			end
+		end
+		
+		hook.Add("HUDPaint","Draw_ExiHUD", draw_exihud)
+		hook.Add("PostPlayerDraw","Draw_PlayerUI", draw_playerui)
+
+	----------------------------------------------------------------------------------------------
+
+		local hide = {
+			["DarkRP_EntityDisplay"] = true,
+			["DarkRP_LocalPlayerHUD"] = true,
+			["CHudHealth"] = true,
+			["CHudAmmo"] = true,
+			["CHudBattery"] = true
+		}
+		
+		hook.Add( "HUDShouldDraw", "HideHUD", function( name )
+			if ( hide[ name ] ) then return false end
+		end )
+
+end
